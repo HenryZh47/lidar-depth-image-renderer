@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   tf2_ros
   tf2_geometry_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -124,6 +125,8 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -154,6 +157,8 @@ add_executable(${PROJECT_NAME}_node src/lidar_depth_renderer_node.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${PCL_LIBRARIES}
   ${PROJECT_NAME}_lib
 )
 

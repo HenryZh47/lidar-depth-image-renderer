@@ -19,19 +19,30 @@ class LidarDepthRendererNode {
   using PointCloudPtr = PointCloud::Ptr;
   using PointCloudConstPtr = PointCloud::ConstPtr;
 
-  LidarDepthRendererNode(const std::string node_name);
-  ~LidarDepthRendererNode();
+  LidarDepthRendererNode(ros::NodeHandle *node_handle,
+                         ros::NodeHandle *private_node_handle);
+  ~LidarDepthRendererNode() = default;
 
   void lidar_cb(const PointCloudConstPtr &cloud_ptr);
   void camera_info_cb(const sensor_msgs::CameraInfoConstPtr &info_ptr,
                       const image_transport::ImageTransport image_it);
 
  private:
+  void initialize_sub();
+  void initialize_pub();
+  void get_topic_names();
+
   ros::NodeHandle nh;
+  ros::NodeHandle pnh;
   LidarDepthRenderer renderer;
 
   tf2_ros::Buffer tf_buffer;
   tf2_ros::TransformListener tf_listener;
+
+  // node info
+  std::string lidar_topic;
+  std::string camera_info_topic;
+  std::string pub_topic;
 
   // publishers and subscribers
   image_transport::ImageTransport it;
