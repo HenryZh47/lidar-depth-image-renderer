@@ -1,7 +1,7 @@
 # LiDAR Depth Image Renderer
 
 The package projects one or more LiDAR point clouds to a camera, generating a
-depth image for the camera. Parallel versions are implemented in both MPI and
+depth image for the camera. Parallel versions are implemented in both OpenMP and
 CUDA.
 
 This is a class project for 15-618 Parallel Computer Architecture and
@@ -15,7 +15,7 @@ TODO
 
 TODO
 
-## MPI Version
+## OpenMP Version
 
 TODO
 
