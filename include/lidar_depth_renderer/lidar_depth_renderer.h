@@ -22,16 +22,16 @@ class LidarDepthRenderer {
   using PointCloudPtr = PointCloud::Ptr;
   using PointCloudConstPtr = PointCloud::ConstPtr;
 
-  LidarDepthRenderer();
+  LidarDepthRenderer() = default;
   ~LidarDepthRenderer() = default;
 
   virtual cv::Mat render(const sensor_msgs::CameraInfo &camera_info,
                          const geometry_msgs::Transform &map_to_camera_tf,
                          const int bloat_factor);
-  void set_cloud(const PointCloudConstPtr new_cloud_ptr);
+  void set_cloud(const PointCloudConstPtr &new_cloud_ptr);
 
  private:
-  PointCloudPtr cloud_ptr;
+  PointCloudConstPtr cloud_ptr;
 };  // class LidarDepthRenderer
 
 #endif  // LIDAR_DEPTH_RENDERER_H

@@ -1,7 +1,7 @@
 #include "lidar_depth_renderer/lidar_depth_renderer.h"
 #include <bits/stdint-uintn.h>
 
-void LidarDepthRenderer::set_cloud(const PointCloudConstPtr new_cloud_ptr) {
+void LidarDepthRenderer::set_cloud(const PointCloudConstPtr &new_cloud_ptr) {
   cloud_ptr = new_cloud_ptr;
 }
 
