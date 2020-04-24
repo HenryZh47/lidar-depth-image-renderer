@@ -4,7 +4,7 @@
       lidar_topic: /kitti/velo/pointcloud
       camera_info_topic: /kitti/camera_color_left/camera_info
       pub_topic: /kitti/camera_color_left/aligned_lidar_depth
-      cloud_size: 10
+      cloud_size: 1
       bloat_factor: 3
     </rosparam>
   </node>

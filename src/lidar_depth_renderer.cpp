@@ -2,18 +2,18 @@
 #include "instrument.h"
 
 #include <bits/stdint-uintn.h>
+#include "lidar_depth_renderer/common_utils.h"
 
 void LidarDepthRenderer::set_cloud(const PointCloudConstPtr &new_cloud_ptr) {
   cloud_ptr = new_cloud_ptr;
 }
 
 cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
-                                   const tf2::Transform &map_to_camera_tf,
+                                   const tf2::Transform &to_camera_tf,
                                    const int bloat_factor) {
   // transform points in current point cloud
-  PointCloudPtr camera_cloud(new PointCloud);
-  const auto map_to_camera_tf_eigen = eigen_tf_from_tf2(map_to_camera_tf);
-  pcl::transformPointCloud(*cloud_ptr, *camera_cloud, map_to_camera_tf_eigen);
+  PointCloudPtr camera_cloud_ptr =
+      transform_cloud_frame(cloud_ptr, to_camera_tf);
 
   // get camera_info
   // the kitti conversion script put width and height inverted
@@ -29,7 +29,7 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
 
   // render points in camera_cloud
   START_ACTIVITY(ACTIVITY_RENDER);
-  for (const auto &point : *camera_cloud) {
+  for (const auto &point : *camera_cloud_ptr) {
     // discard points that are behind the camera
     if (point.z <= 0.0) continue;
 
@@ -56,14 +56,4 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
   FINISH_ACTIVITY(ACTIVITY_RENDER);
 
   return result;
-}
-
-Eigen::Affine3f LidarDepthRenderer::eigen_tf_from_tf2(
-    const tf2::Transform &tf) {
-  const auto &origin = tf.getOrigin();
-  const auto &rotation = tf.getRotation();
-
-  return Eigen::Affine3f(Eigen::Translation3f(origin[0], origin[1], origin[2]) *
-                         Eigen::Quaternionf(rotation.w(), rotation.x(),
-                                            rotation.y(), rotation.z()));
 }

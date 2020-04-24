@@ -11,6 +11,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include "lidar_depth_renderer/cloud_accumulator.h"
 #include "lidar_depth_renderer/lidar_depth_renderer.h"
 
 class LidarDepthRendererNode {
@@ -48,7 +49,7 @@ class LidarDepthRendererNode {
   int cloud_size;
   int bloat_factor;
 
-  const std::string CLOUD_FRAME = "velo_link";
+  const std::string CLOUD_FRAME = "world";
   bool have_cloud = false;
 
   // publishers and subscribers
@@ -59,6 +60,7 @@ class LidarDepthRendererNode {
 
   // TODO(hengruiz): need a cloud accumulator class to combine multiple laser
   // frames
+  CloudAccumulator cloud_accumulator;
 
 };  // class LidarDepthRendererNode
 
