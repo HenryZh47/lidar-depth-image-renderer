@@ -7,12 +7,11 @@ void LidarDepthRenderer::set_cloud(const PointCloudConstPtr &new_cloud_ptr) {
 }
 
 cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
-                                   const tf2::Transform &map_to_camera_tf,
+                                   const tf2::Transform &to_camera_tf,
                                    const int bloat_factor) {
   // transform points in current point cloud
-  PointCloudPtr camera_cloud(new PointCloud);
-  const auto map_to_camera_tf_eigen = eigen_tf_from_tf2(map_to_camera_tf);
-  pcl::transformPointCloud(*cloud_ptr, *camera_cloud, map_to_camera_tf_eigen);
+  PointCloudPtr camera_cloud_ptr =
+      transform_cloud_frame(cloud_ptr, to_camera_tf);
 
   // get camera_info
   // the kitti conversion script put width and height inverted
@@ -27,7 +26,7 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
   cv::Mat result = cv::Mat::zeros(height, width, CV_16UC1);  // (row, col)
 
   // render points in camera_cloud
-  for (const auto &point : *camera_cloud) {
+  for (const auto &point : *camera_cloud_ptr) {
     // discard points that are behind the camera
     if (point.z <= 0.0) continue;
 

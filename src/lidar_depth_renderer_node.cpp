@@ -24,6 +24,7 @@ void LidarDepthRendererNode::setup_ros() {
   // load cloud size parameters
   // TODO(hengruiz): ignored for now, need to implement accumulator
   pnh.getParam("cloud_size", cloud_size);
+  cloud_accumulator.set_window_size(cloud_size);
   pnh.getParam("bloat_factor", bloat_factor);
 
   ROS_INFO_STREAM("lidar points topic: " << lidar_topic);
@@ -42,9 +43,25 @@ void LidarDepthRendererNode::lidar_cb(
   PointCloudPtr pcl_cloud_ptr(new PointCloud);
   pcl::fromPCLPointCloud2(pcl2_cloud, *pcl_cloud_ptr);
 
+  // add to cloud accumulator
+  const auto query_time = cloud_ptr->header.stamp;
+  // get the transform from current velo_link to world frame
+  tf2::Transform to_map_tf;
+  try {
+    // block for up to 100ms to wait for sensor pose tfs
+    const auto map_to_camera = tf_buffer.lookupTransform(
+        CLOUD_FRAME, cloud_ptr->header.frame_id, query_time, ros::Duration(.1));
+    tf2::fromMsg(map_to_camera.transform, to_map_tf);
+  } catch (tf2::TransformException &e) {
+    ROS_WARN("%s", e.what());
+    return;
+  }
+  // add to sliding window
+  cloud_accumulator.add(pcl_cloud_ptr, to_map_tf);
+
   // TODO(hengruiz): need to update accumulated cloud
   //                 just update to current laser frame for now
-  renderer.set_cloud(pcl_cloud_ptr);
+  renderer.set_cloud(cloud_accumulator.get_cloud());
   have_cloud = true;
 }
 
