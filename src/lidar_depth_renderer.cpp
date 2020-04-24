@@ -1,4 +1,6 @@
 #include "lidar_depth_renderer/lidar_depth_renderer.h"
+#include "instrument.h"
+
 #include <bits/stdint-uintn.h>
 #include "lidar_depth_renderer/common_utils.h"
 
@@ -26,6 +28,7 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
   cv::Mat result = cv::Mat::zeros(height, width, CV_16UC1);  // (row, col)
 
   // render points in camera_cloud
+  START_ACTIVITY(ACTIVITY_RENDER);
   for (const auto &point : *camera_cloud_ptr) {
     // discard points that are behind the camera
     if (point.z <= 0.0) continue;
@@ -50,6 +53,7 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
       }
     }
   }
+  FINISH_ACTIVITY(ACTIVITY_RENDER);
 
   return result;
 }

@@ -125,15 +125,23 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include
+  include/lidar_depth_renderer
+  include/instrumentation
+  include/hwaccelerate
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}_lib
+set(LDR_LIB_SOURCES
+  src/instrumentation/cycletimer.cpp
+  src/instrumentation/instrument.cpp
+  src/fake_omp.c
   src/lidar_depth_renderer.cpp
 )
+
+add_library(${PROJECT_NAME}_lib ${LDR_LIB_SOURCES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

@@ -1,4 +1,6 @@
 #include "lidar_depth_renderer/lidar_depth_renderer_node.h"
+#include "instrument.h"
+
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/conversions.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -96,6 +98,8 @@ void LidarDepthRendererNode::camera_info_cb(
   lidar_depth_bridge.image =
       renderer.render(*info_ptr, map_to_camera_tf, bloat_factor);
   lidar_depth_pub.publish(lidar_depth_bridge.toImageMsg());
+
+  SHOW_ACTIVITY(stderr, true);
 }
 
 void LidarDepthRendererNode::initialize_sub() {
@@ -117,6 +121,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "lidar_renderer_node");
   ros::NodeHandle node_handle;
   ros::NodeHandle private_node_handle("~");
+
+  track_activity(true);
 
   ROS_INFO("Instantiating LidarDepthRendererNode");
   LidarDepthRendererNode renderer_node(&node_handle, &private_node_handle);
