@@ -1,5 +1,6 @@
 #include "lidar_depth_renderer/lidar_depth_renderer.h"
 #include <bits/stdint-uintn.h>
+#include "lidar_depth_renderer/common_utils.h"
 
 void LidarDepthRenderer::set_cloud(const PointCloudConstPtr &new_cloud_ptr) {
   cloud_ptr = new_cloud_ptr;
@@ -52,14 +53,4 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
   }
 
   return result;
-}
-
-Eigen::Affine3f LidarDepthRenderer::eigen_tf_from_tf2(
-    const tf2::Transform &tf) {
-  const auto &origin = tf.getOrigin();
-  const auto &rotation = tf.getRotation();
-
-  return Eigen::Affine3f(Eigen::Translation3f(origin[0], origin[1], origin[2]) *
-                         Eigen::Quaternionf(rotation.w(), rotation.x(),
-                                            rotation.y(), rotation.z()));
 }

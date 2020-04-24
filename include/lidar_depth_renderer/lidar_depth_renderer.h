@@ -33,7 +33,6 @@ class LidarDepthRenderer {
   void set_cloud(const PointCloudConstPtr &new_cloud_ptr);
 
  private:
-  Eigen::Affine3f eigen_tf_from_tf2(const tf2::Transform &tf);
   PointCloudConstPtr cloud_ptr;
 };  // class LidarDepthRenderer
 
