@@ -43,26 +43,12 @@ void LidarDepthRendererNode::lidar_cb(
   pcl::PCLPointCloud2 pcl2_cloud;
   pcl_conversions::toPCL(*cloud_ptr, pcl2_cloud);
   PointCloudPtr pcl_cloud_ptr(new PointCloud);
+  pcl_cloud_ptr->reserve(cloud_ptr->width);
   pcl::fromPCLPointCloud2(pcl2_cloud, *pcl_cloud_ptr);
 
-  // add to cloud accumulator
-  const auto query_time = cloud_ptr->header.stamp;
-  // get the transform from current velo_link to world frame
-  tf2::Transform to_map_tf;
-  try {
-    // block for up to 100ms to wait for sensor pose tfs
-    const auto map_to_camera = tf_buffer.lookupTransform(
-        CLOUD_FRAME, cloud_ptr->header.frame_id, query_time, ros::Duration(.1));
-    tf2::fromMsg(map_to_camera.transform, to_map_tf);
-  } catch (tf2::TransformException &e) {
-    ROS_WARN("%s", e.what());
-    return;
-  }
   // add to sliding window
-  cloud_accumulator.add(pcl_cloud_ptr, to_map_tf);
+  cloud_accumulator.add(pcl_cloud_ptr);
 
-  // TODO(hengruiz): need to update accumulated cloud
-  //                 just update to current laser frame for now
   renderer.set_cloud(cloud_accumulator.get_cloud());
   have_cloud = true;
 }
@@ -76,7 +62,8 @@ void LidarDepthRendererNode::camera_info_cb(
   }
   // render points in the current view
   // get current transform
-  const auto query_time = info_ptr->header.stamp;
+  // minus an arbitrary half a second because we don't have timesync
+  const auto query_time = info_ptr->header.stamp - ros::Duration(0.5);
   tf2::Transform map_to_camera_tf;
   try {
     // block for up to 100ms to wait for sensor pose tfs
@@ -98,8 +85,6 @@ void LidarDepthRendererNode::camera_info_cb(
   lidar_depth_bridge.image =
       renderer.render(*info_ptr, map_to_camera_tf, bloat_factor);
   lidar_depth_pub.publish(lidar_depth_bridge.toImageMsg());
-
-  SHOW_ACTIVITY(stderr, true);
 }
 
 void LidarDepthRendererNode::initialize_sub() {

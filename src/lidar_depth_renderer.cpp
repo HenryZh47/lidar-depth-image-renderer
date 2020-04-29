@@ -17,8 +17,8 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
 
   // get camera_info
   // the kitti conversion script put width and height inverted
-  const auto height = camera_info.width;
-  const auto width = camera_info.height;
+  const auto width = camera_info.width;
+  const auto height = camera_info.height;
   const auto fx = camera_info.K[0];
   const auto fy = camera_info.K[4];
   const auto cx = camera_info.K[2];
