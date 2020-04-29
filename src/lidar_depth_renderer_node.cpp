@@ -67,9 +67,6 @@ void LidarDepthRendererNode::camera_info_cb(
   tf2::Transform map_to_camera_tf;
   try {
     // block for up to 100ms to wait for sensor pose tfs
-    // TODO(hengruiz): this is just a static transform from velodyne to camera
-    // for now, need to change to "world" frame to camera once we move to
-    // accumulated cloud
     const auto map_to_camera = tf_buffer.lookupTransform(
         info_ptr->header.frame_id, CLOUD_FRAME, query_time, ros::Duration(.1));
     tf2::fromMsg(map_to_camera.transform, map_to_camera_tf);

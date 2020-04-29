@@ -4,7 +4,7 @@
       lidar_topic: /velodyne_cloud_registered
       camera_info_topic: /rs_front/color/camera_info
       pub_topic: /rs_front/color/aligned_lidar_depth
-      cloud_size: 1
+      cloud_size: 30
       bloat_factor: 3
     </rosparam>
   </node>
