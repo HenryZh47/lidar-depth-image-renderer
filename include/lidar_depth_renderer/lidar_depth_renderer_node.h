@@ -49,7 +49,7 @@ class LidarDepthRendererNode {
   int cloud_size;
   int bloat_factor;
 
-  const std::string CLOUD_FRAME = "world";
+  const std::string CLOUD_FRAME = "sensor_init_rot";
   bool have_cloud = false;
 
   // publishers and subscribers

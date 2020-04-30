@@ -24,16 +24,12 @@ class CloudAccumulator {
       : window_size(input_size), num_clouds(0), num_points(0), updated(false) {}
   ~CloudAccumulator() = default;
 
-  void add(const PointCloudConstPtr &new_cloud_ptr,
-           const tf2::Transform &to_map_tf) {
-    // first transform clouds from velo_link to world
-    PointCloudPtr new_map_cloud_ptr =
-        transform_cloud_frame(new_cloud_ptr, to_map_tf);
+  void add(const PointCloudPtr &new_cloud_ptr) {
     // add to sliding window deque
     // also maintain num_clouds and num_points
-    cloud_window.push_back(new_map_cloud_ptr);
+    cloud_window.push_back(new_cloud_ptr);
     num_clouds++;
-    num_points += new_map_cloud_ptr->size();
+    num_points += new_cloud_ptr->size();
     if (num_clouds > window_size) {
       num_points -= cloud_window.front()->size();
       cloud_window.pop_front();
