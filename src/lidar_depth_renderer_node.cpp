@@ -6,6 +6,23 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <boost/bind.hpp>
 
+
+#define likely(x)      __builtin_expect(!!(x), 1) 
+#define unlikely(x)    __builtin_expect(!!(x), 0) 
+
+
+#define RENDER_PERF_STATS (1)
+
+/* Framerate variables */
+static clock_t delta_time = 0;
+static unsigned int frames = 0;
+static double average_fps = 30;
+static double average_frame_time_ms = 0;
+static const double fps_alpha = 0.9;
+static double this_fps = 0;
+
+static double clockToMilliseconds(clock_t ticks);
+
 LidarDepthRendererNode::LidarDepthRendererNode(
     ros::NodeHandle *node_handle, ros::NodeHandle *private_node_handle)
     : nh(*node_handle),
@@ -15,6 +32,9 @@ LidarDepthRendererNode::LidarDepthRendererNode(
   setup_ros();
   initialize_sub();
   initialize_pub();
+
+  out_im_width = 0;
+  out_im_height = 0;
 }
 
 void LidarDepthRendererNode::setup_ros() {
@@ -56,6 +76,15 @@ void LidarDepthRendererNode::lidar_cb(
 void LidarDepthRendererNode::camera_info_cb(
     const sensor_msgs::CameraInfoConstPtr &info_ptr,
     const image_transport::ImageTransport image_it) {
+  if (unlikely(out_im_width == 0 && out_im_height == 0))
+  {
+    // First time initialization
+    out_im_width = info_ptr->width;
+    out_im_height = info_ptr->height;
+    out_im = cv::Mat::zeros(out_im_height, out_im_width, CV_16UC1);  // (row, col)
+    ROS_INFO("Initializing camera: %dx%d", out_im_width, out_im_height);
+  }
+
   if (!have_cloud) {
     ROS_WARN("Node hasn't received any pointcloud yet");
     return;
@@ -76,11 +105,37 @@ void LidarDepthRendererNode::camera_info_cb(
   }
 
   // form depth image and publish
-  cv_bridge::CvImage lidar_depth_bridge;
-  lidar_depth_bridge.header = info_ptr->header;
-  lidar_depth_bridge.encoding = "16UC1";
-  lidar_depth_bridge.image =
-      renderer.render(*info_ptr, map_to_camera_tf, bloat_factor);
+  cv_bridge::CvImage lidar_depth_bridge(info_ptr->header, "16UC1", out_im);
+  // lidar_depth_bridge.header = info_ptr->header;
+  // lidar_depth_bridge.encoding = "16UC1";
+
+  clock_t begin_frame = clock();
+
+  renderer.render(out_im, *info_ptr, map_to_camera_tf, bloat_factor);
+  
+  clock_t end_frame = clock();
+  delta_time += end_frame - begin_frame;
+  frames++;
+
+  if (frames > 2)
+  {
+    this_fps = frames / (double(delta_time) / CLOCKS_PER_SEC);
+    frames = 0;
+    delta_time = 0;
+    // average_fps = (double) frames * (fps_alpha) + average_fps * (1 - fps_alpha);
+  }
+
+#if (RENDER_PERF_STATS)
+  // std::cout << "STATS" << std::endl;
+  char fps_str[30];
+  memset(fps_str, '\n', 30);
+  sprintf(fps_str, "Avg. FPS: %.2f", this_fps);
+  // fprintf(stderr, fps_str);
+  cv::putText(out_im,
+    fps_str, cv::Point(30, 40), cv::FONT_HERSHEY_SIMPLEX,
+    1.0, cv::Scalar(0xFFFF));
+#endif
+  
   lidar_depth_pub.publish(lidar_depth_bridge.toImageMsg());
 }
 
@@ -111,4 +166,10 @@ int main(int argc, char **argv) {
 
   ros::spin();
   return 0;
+}
+
+static double clockToMilliseconds(clock_t ticks)
+{
+  // units/(units/time) => time (seconds) * 1000 = milliseconds
+  return (ticks/(double)CLOCKS_PER_SEC)*1000.0;
 }

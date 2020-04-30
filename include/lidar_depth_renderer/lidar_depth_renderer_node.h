@@ -49,6 +49,10 @@ class LidarDepthRendererNode {
   int cloud_size;
   int bloat_factor;
 
+  int out_im_width;
+  int out_im_height;
+  cv::Mat out_im;
+
   const std::string CLOUD_FRAME = "sensor_init_rot";
   bool have_cloud = false;
 

@@ -8,9 +8,10 @@ void LidarDepthRenderer::set_cloud(const PointCloudConstPtr &new_cloud_ptr) {
   cloud_ptr = new_cloud_ptr;
 }
 
-cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
-                                   const tf2::Transform &to_camera_tf,
-                                   const int bloat_factor) {
+void LidarDepthRenderer::render(cv::Mat &result,
+                                const sensor_msgs::CameraInfo &camera_info,
+                                const tf2::Transform &to_camera_tf,
+                                const int bloat_factor) {
   // transform points in current point cloud
   PointCloudPtr camera_cloud_ptr =
       transform_cloud_frame(cloud_ptr, to_camera_tf);
@@ -24,8 +25,8 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
   const auto cx = camera_info.K[2];
   const auto cy = camera_info.K[5];
 
-  // create empty result image
-  cv::Mat result = cv::Mat::zeros(height, width, CV_16UC1);  // (row, col)
+  // erase result image
+  result.setTo(0);
 
   // render points in camera_cloud
   START_ACTIVITY(ACTIVITY_RENDER);
@@ -54,6 +55,9 @@ cv::Mat LidarDepthRenderer::render(const sensor_msgs::CameraInfo &camera_info,
     }
   }
   FINISH_ACTIVITY(ACTIVITY_RENDER);
+}
 
-  return result;
+double clockToMilliseconds(clock_t ticks){
+  // units/(units/time) => time (seconds) * 1000 = milliseconds
+  return (ticks/(double)CLOCKS_PER_SEC)*1000.0;
 }
