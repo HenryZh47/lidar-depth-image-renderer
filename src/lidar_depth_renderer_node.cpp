@@ -35,6 +35,23 @@ LidarDepthRendererNode::LidarDepthRendererNode(
 
   out_im_width = 0;
   out_im_height = 0;
+
+  // Query renderer library implementation
+  _implementation = renderer.query_omp();
+  switch (_implementation)
+  {
+  case 0:
+    ROS_INFO("[Library]: Serial");
+    break;
+
+  case 1:
+    ROS_INFO("[Library]: OpenMP");
+    break;
+  
+  default:
+    ROS_WARN("[Library]: Unknown");
+    break;
+  }
 }
 
 void LidarDepthRendererNode::setup_ros() {

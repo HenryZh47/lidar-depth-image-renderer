@@ -4,6 +4,12 @@
 #include <bits/stdint-uintn.h>
 #include "lidar_depth_renderer/common_utils.h"
 
+#if OMP
+#include <omp.h>
+#else
+#include "fake_omp.h"
+#endif
+
 void LidarDepthRenderer::set_cloud(const PointCloudConstPtr &new_cloud_ptr) {
   cloud_ptr = new_cloud_ptr;
 }
@@ -55,6 +61,15 @@ void LidarDepthRenderer::render(cv::Mat &result,
     }
   }
   FINISH_ACTIVITY(ACTIVITY_RENDER);
+}
+
+int LidarDepthRenderer::query_omp(void)
+{
+  int result = 0;
+#if OMP
+  result = 1;
+#endif
+  return result;
 }
 
 double clockToMilliseconds(clock_t ticks){

@@ -24,6 +24,12 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
 
+find_package(OpenMP REQUIRED)
+if(OPENMP_FOUND)
+  message(STATUS "OPENMP FOUND")
+  set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
+  set(OpenMP_LIBS gomp)
+endif()
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -141,7 +147,22 @@ set(LDR_LIB_SOURCES
   src/lidar_depth_renderer.cpp
 )
 
+## Renderer library (serial version)
 add_library(${PROJECT_NAME}_lib ${LDR_LIB_SOURCES})
+target_compile_definitions(${PROJECT_NAME}_lib
+  PRIVATE
+  OMP=0
+)
+
+## Renderer library (OpenMP version)
+add_library(${PROJECT_NAME}_omp_lib ${LDR_LIB_SOURCES})
+target_compile_definitions(${PROJECT_NAME}_omp_lib
+  PRIVATE
+  OMP=1
+)
+target_link_libraries(${PROJECT_NAME}_omp_lib
+  ${OpenMP_LIBS}
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -152,6 +173,8 @@ add_library(${PROJECT_NAME}_lib ${LDR_LIB_SOURCES})
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/lidar_depth_renderer_node.cpp)
+
+add_executable(${PROJECT_NAME}_omp_node src/lidar_depth_renderer_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -169,6 +192,13 @@ target_link_libraries(${PROJECT_NAME}_node
   ${OpenCV_LIBRARIES}
   ${PCL_LIBRARIES}
   ${PROJECT_NAME}_lib
+)
+
+target_link_libraries(${PROJECT_NAME}_omp_node
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${PROJECT_NAME}_omp_lib
 )
 
 #############

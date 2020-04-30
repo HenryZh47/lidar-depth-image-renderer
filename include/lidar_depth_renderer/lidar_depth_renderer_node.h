@@ -53,6 +53,9 @@ class LidarDepthRendererNode {
   int out_im_height;
   cv::Mat out_im;
 
+  // Renderer implementation version
+  int _implementation;
+
   const std::string CLOUD_FRAME = "sensor_init_rot";
   bool have_cloud = false;
 
@@ -62,8 +65,6 @@ class LidarDepthRendererNode {
   ros::Subscriber lidar_sub;
   ros::Subscriber camera_info_sub;
 
-  // TODO(hengruiz): need a cloud accumulator class to combine multiple laser
-  // frames
   CloudAccumulator cloud_accumulator;
 
 };  // class LidarDepthRendererNode

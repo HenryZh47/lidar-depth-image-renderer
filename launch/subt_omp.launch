@@ -1,0 +1,11 @@
+<launch>
+  <node pkg="lidar_depth_renderer" type="lidar_depth_renderer_omp_node" name="lidar_depth_renderer" output="screen">
+    <rosparam>
+      lidar_topic: /velodyne_cloud_registered
+      camera_info_topic: /rs_front/color/camera_info
+      pub_topic: /rs_front/color/aligned_lidar_depth
+      cloud_size: 30
+      bloat_factor: 3
+    </rosparam>
+  </node>
+</launch>

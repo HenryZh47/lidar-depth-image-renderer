@@ -33,6 +33,13 @@ class LidarDepthRenderer {
                       const int bloat_factor);
   void set_cloud(const PointCloudConstPtr &new_cloud_ptr);
 
+  /**
+   * @brief Queries whether OpenMP implementation is chosen
+   * 
+   * @return int 0 if serial; 1 if OpenMP
+   */
+  int query_omp(void);
+
  private:
   PointCloudConstPtr cloud_ptr;
 };  // class LidarDepthRenderer
