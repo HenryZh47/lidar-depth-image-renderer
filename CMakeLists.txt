@@ -27,8 +27,11 @@ find_package(OpenCV REQUIRED)
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
   message(STATUS "OPENMP FOUND")
-  set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
+  # set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
   set(OpenMP_LIBS gomp)
+  set(
+    CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}"
+  )
 endif()
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -143,21 +146,21 @@ include_directories(
 set(LDR_LIB_SOURCES
   src/instrumentation/cycletimer.cpp
   src/instrumentation/instrument.cpp
-  src/fake_omp.c
+  src/fake_omp.cpp
   src/lidar_depth_renderer.cpp
 )
 
 ## Renderer library (serial version)
 add_library(${PROJECT_NAME}_lib ${LDR_LIB_SOURCES})
 target_compile_definitions(${PROJECT_NAME}_lib
-  PRIVATE
+  PUBLIC
   OMP=0
 )
 
 ## Renderer library (OpenMP version)
 add_library(${PROJECT_NAME}_omp_lib ${LDR_LIB_SOURCES})
 target_compile_definitions(${PROJECT_NAME}_omp_lib
-  PRIVATE
+  PUBLIC
   OMP=1
 )
 target_link_libraries(${PROJECT_NAME}_omp_lib

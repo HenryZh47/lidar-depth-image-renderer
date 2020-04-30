@@ -100,7 +100,10 @@ void LidarDepthRendererNode::camera_info_cb(
     out_im_height = info_ptr->height;
     out_im = cv::Mat::zeros(out_im_height, out_im_width, CV_16UC1);  // (row, col)
     ROS_INFO("Initializing camera: %dx%d", out_im_width, out_im_height);
+    renderer.init(out_im_height, out_im_width);
   }
+
+  track_activity(true);
 
   if (!have_cloud) {
     ROS_WARN("Node hasn't received any pointcloud yet");
@@ -152,6 +155,10 @@ void LidarDepthRendererNode::camera_info_cb(
     fps_str, cv::Point(30, 40), cv::FONT_HERSHEY_SIMPLEX,
     1.0, cv::Scalar(0xFFFF));
 #endif
+
+  show_activity(stderr, true);
+
+  track_activity(false);
   
   lidar_depth_pub.publish(lidar_depth_bridge.toImageMsg());
 }
@@ -175,8 +182,6 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "lidar_renderer_node");
   ros::NodeHandle node_handle;
   ros::NodeHandle private_node_handle("~");
-
-  track_activity(true);
 
   ROS_INFO("Instantiating LidarDepthRendererNode");
   LidarDepthRendererNode renderer_node(&node_handle, &private_node_handle);
