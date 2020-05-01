@@ -133,7 +133,7 @@ void LidarDepthRendererNode::camera_info_cb(
               cv::Scalar(0xFFFF));
 #endif
 
-  show_activity(stderr, true);
+  // show_activity(stderr, true);
 
   track_activity(false);
 

@@ -139,9 +139,9 @@ void LidarDepthRenderer::init(int height, int width) {
   image_width = width;
 
 #if OMP
-#pragma omp parallel
-  { fprintf(stderr, "omp nthread=%d\n", omp_get_num_threads()); }
-  fprintf(stderr, "init mat, nthread=%d\n", n_threads);
+  // #pragma omp parallel
+  //  { fprintf(stderr, "omp nthread=%d\n", omp_get_num_threads()); }
+  //  fprintf(stderr, "init mat, nthread=%d\n", n_threads);
   for (int i = 0; i < n_threads; i++) {
     cv::Mat new_mat = cv::Mat::zeros(image_height, image_width, CV_8UC1);
     omp_mats.push_back(new_mat);
