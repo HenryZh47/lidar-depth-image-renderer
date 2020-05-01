@@ -56,7 +56,6 @@ void LidarDepthRendererNode::setup_ros() {
   pnh.getParam("pub_topic", pub_topic);
 
   // load cloud size parameters
-  // TODO(hengruiz): ignored for now, need to implement accumulator
   pnh.getParam("cloud_size", cloud_size);
   cloud_accumulator.set_window_size(cloud_size);
   pnh.getParam("bloat_factor", bloat_factor);
@@ -121,8 +120,6 @@ void LidarDepthRendererNode::camera_info_cb(
 
   // form depth image and publish
   cv_bridge::CvImage lidar_depth_bridge(info_ptr->header, "8UC1", out_im);
-  // lidar_depth_bridge.header = info_ptr->header;
-  // lidar_depth_bridge.encoding = "16UC1";
 
   std::chrono::milliseconds begin_time = get_time_ms();
 
@@ -132,11 +129,9 @@ void LidarDepthRendererNode::camera_info_cb(
   delta_time = end_time - begin_time;
 
 #if (RENDER_PERF_STATS)
-  // std::cout << "STATS" << std::endl;
   char fps_str[30];
   memset(fps_str, '\n', 30);
   sprintf(fps_str, "Frame time: %ld ms", delta_time.count());
-  // fprintf(stderr, fps_str);
   cv::putText(out_im,
     fps_str, cv::Point(30, 40), cv::FONT_HERSHEY_SIMPLEX,
     1.0, cv::Scalar(0xFFFF));

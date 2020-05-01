@@ -83,6 +83,7 @@ void LidarDepthRenderer::render(cv::Mat &result,
           // get the previous depth
           const auto prev_depth = local_result->at<uint8_t>(v + i, u + j);
           // update if no previous depth or closer than previous depth
+          // Cap values to 254 so that 255 can represent 0 for easy reduction
           if ((prev_depth == 0 || cur_depth < prev_depth) && cur_depth < 255) {
             local_result->at<uint8_t>(v + i, u + j) = cur_depth;
           }
@@ -93,8 +94,6 @@ void LidarDepthRenderer::render(cv::Mat &result,
   }
 
 #if OMP
-  // fprintf(stderr, "Thread %d processed %d\\%lupoints\n",
-  //   tid, processed_pts, (*cloud_ptr).size());
   }
 #endif
 
