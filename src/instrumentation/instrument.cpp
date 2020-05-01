@@ -14,7 +14,7 @@
 #define MAX_THREAD 64
 
 /* Instrument different sections of program */
-static const char *activity_name[ACTIVITY_COUNT] = {"overhead", "startup", "render"};
+static const char *activity_name[ACTIVITY_COUNT] = {"overhead", "startup", "render", "reduce", "transform"};
 
 static bool tracking = false;
 static double global_start_time = 0.0;
@@ -77,4 +77,12 @@ void show_activity(FILE *f, bool enable)
     double upct = unknown / elapsed * 100.0;
     fprintf(f, "    %8d ms    %5.1f %%    unknown\n", (int)ums, upct);
     fprintf(f, "    %8d ms    %5.1f %%    elapsed\n", (int)(elapsed * 1000.0), 100.0);
+}
+
+std::chrono::milliseconds get_time_ms(void)
+{
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(
+        system_clock::now().time_since_epoch()
+    );
 }

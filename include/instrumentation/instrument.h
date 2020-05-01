@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <chrono>
 
 #define TRACK 1
 
@@ -27,6 +28,8 @@ typedef enum
     ACTIVITY_OVERHEAD,
     ACTIVITY_STARTUP,
     ACTIVITY_RENDER,
+    ACTIVITY_REDUCE,
+    ACTIVITY_TRANSFORM,
     ACTIVITY_COUNT
 } activity_t;
 
@@ -35,6 +38,7 @@ void start_activity(activity_t a);
 void finish_local_activity(activity_t a);
 void finish_activity(activity_t a);
 void show_activity(FILE *f, bool enable);
+std::chrono::milliseconds get_time_ms(void);
 
 #if TRACK
 #define START_ACTIVITY(a) start_activity(a)
