@@ -14,7 +14,7 @@
 #define MAX_THREAD 64
 
 /* Instrument different sections of program */
-static const char *activity_name[ACTIVITY_COUNT] = {"overhead", "startup", "render"};
+static const char *activity_name[ACTIVITY_COUNT] = {"overhead", "startup", "render", "project", "transform"};
 
 static bool tracking = false;
 static double global_start_time = 0.0;

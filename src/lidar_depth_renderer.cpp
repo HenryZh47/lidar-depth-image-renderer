@@ -19,12 +19,6 @@ void LidarDepthRenderer::render(cv::Mat &result,
                                 const sensor_msgs::CameraInfo &camera_info,
                                 const tf2::Transform &to_camera_tf,
                                 const int bloat_factor) {
-  // transform points in current point cloud
-  START_ACTIVITY(ACTIVITY_OVERHEAD);
-  PointCloudPtr camera_cloud_ptr =
-      transform_cloud_frame(cloud_ptr, to_camera_tf);
-  FINISH_ACTIVITY(ACTIVITY_OVERHEAD);
-
   // get camera_info
   // the kitti conversion script put width and height inverted
   const auto width = camera_info.width;
@@ -38,10 +32,9 @@ void LidarDepthRenderer::render(cv::Mat &result,
   result.setTo(0);
 
   // render points in camera_cloud
-  START_ACTIVITY(ACTIVITY_RENDER);
 
   int processed_pts = 0;
-  size_t total_pts = (*camera_cloud_ptr).size();
+  size_t total_pts = (*cloud_ptr).size();
 #if OMP
   #pragma omp parallel firstprivate (processed_pts)
   {
@@ -54,7 +47,7 @@ void LidarDepthRenderer::render(cv::Mat &result,
 #endif
   for (size_t ii = 0; ii < total_pts; ii++)
   {
-    const auto &point = (*camera_cloud_ptr).at(ii);
+    const auto &point = (*cloud_ptr).at(ii);
     processed_pts ++;
 
   cv::Mat *local_result;
@@ -64,17 +57,25 @@ void LidarDepthRenderer::render(cv::Mat &result,
   local_result = &(result);
 #endif
 
+    // transform point to camera frame
+    START_ACTIVITY(ACTIVITY_TRANSFORM);
+    const auto cam_point = transform_point(point, to_camera_tf);
+    FINISH_ACTIVITY(ACTIVITY_TRANSFORM);
+
     // discard points that are behind the camera
-    if (point.z <= 0.0) continue;
+    if (cam_point.z <= 0.0) continue;
 
     // compute projected image coordinates
-    const auto u = static_cast<int>((fx * point.x) / point.z + cx);
-    const auto v = static_cast<int>((fy * point.y) / point.z + cy);
+    START_ACTIVITY(ACTIVITY_RENDER);
+    const auto u = static_cast<int>((fx * cam_point.x) / cam_point.z + cx);
+    const auto v = static_cast<int>((fy * cam_point.y) / cam_point.z + cy);
+    FINISH_ACTIVITY(ACTIVITY_RENDER);
 
+    START_ACTIVITY(ACTIVITY_PROJECT);
     // bloat points in the image using bloat_factor
     if (u - bloat_factor >= 0 && u + bloat_factor < width &&
         v - bloat_factor >= 0 && v + bloat_factor < height) {
-      const auto cur_depth = static_cast<uint16_t>(point.z * 1000.0);
+      const auto cur_depth = static_cast<uint16_t>(cam_point.z * 1000.0);
       for (int i = -bloat_factor; i <= bloat_factor; i++) {
         for (int j = -bloat_factor; j <= bloat_factor; j++) {
           // get the previous depth
@@ -86,11 +87,12 @@ void LidarDepthRenderer::render(cv::Mat &result,
         }
       }
     }
+    FINISH_ACTIVITY(ACTIVITY_PROJECT);
   }
 
 #if OMP
   fprintf(stderr, "Thread %d processed %d\\%lupoints\n",
-    tid, processed_pts, (*camera_cloud_ptr).size());
+    tid, processed_pts, (*cloud_ptr).size());
   }
 #endif
 
@@ -102,7 +104,6 @@ void LidarDepthRenderer::render(cv::Mat &result,
 //     result = cv::min(result, local_mat);
 //   }
 // #endif
-  FINISH_ACTIVITY(ACTIVITY_RENDER);
 
 }
 
