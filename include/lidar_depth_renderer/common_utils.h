@@ -39,9 +39,12 @@ Point transform_point(const Point &point, const tf2::Transform &tf) {
   const auto trans = tf.getOrigin();
 
   Point result;
-  result.x = rot[0][0] * point.x + rot[0][1] * point.y + rot[0][2] * point.z + trans[0];
-  result.y = rot[1][0] * point.x + rot[1][1] * point.y + rot[1][2] * point.z + trans[1];
-  result.z = rot[2][0] * point.x + rot[2][1] * point.y + rot[2][2] * point.z + trans[2];
+  result.x = rot[0][0] * point.x + rot[0][1] * point.y + rot[0][2] * point.z +
+             trans[0];
+  result.y = rot[1][0] * point.x + rot[1][1] * point.y + rot[1][2] * point.z +
+             trans[1];
+  result.z = rot[2][0] * point.x + rot[2][1] * point.y + rot[2][2] * point.z +
+             trans[2];
   return result;
 }
 

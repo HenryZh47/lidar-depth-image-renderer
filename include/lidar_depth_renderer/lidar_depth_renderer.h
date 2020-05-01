@@ -37,14 +37,14 @@ class LidarDepthRenderer {
 
   /**
    * @brief Queries whether OpenMP implementation is chosen
-   * 
+   *
    * @return int 0 if serial; 1 if OpenMP
    */
   int query_omp(void);
 
   /**
    * @brief Initializes renderer parameters
-   * 
+   *
    * @param height Height of output image
    * @param width Width of output image
    */
@@ -52,7 +52,7 @@ class LidarDepthRenderer {
 
  private:
   PointCloudConstPtr cloud_ptr;
-  
+
   int n_threads;
   int image_height;
   int image_width;
