@@ -121,7 +121,7 @@ void LidarDepthRenderer::render(cv::Mat &result,
   FINISH_ACTIVITY(ACTIVITY_REDUCE);
 }
 
-int LidarDepthRenderer::query_omp(void) {
+int LidarDepthRenderer::query_implementation(void) {
   int result = 0;
 #if OMP
   result = 1;

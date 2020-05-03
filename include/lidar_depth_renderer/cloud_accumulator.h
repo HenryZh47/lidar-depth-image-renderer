@@ -12,12 +12,12 @@
 #include "lidar_depth_renderer/common_utils.h"
 
 class CloudAccumulator {
- public:
   using Point = pcl::PointXYZ;
   using PointCloud = pcl::PointCloud<Point>;
   using PointCloudPtr = PointCloud::Ptr;
   using PointCloudConstPtr = PointCloud::ConstPtr;
 
+ public:
   CloudAccumulator()
       : window_size(0), num_clouds(0), num_points(0), updated(false) {}
   CloudAccumulator(size_t input_size)
@@ -70,5 +70,54 @@ class CloudAccumulator {
   bool updated;
 
 };  // Class CloudAccumulator
+
+void *cuda_malloc(const size_t size);
+void cuda_memcpy_to_dev(void *dst, const void *src, const size_t size);
+void cuda_free(void *dst);
+
+template <typename PointT>
+class CloudAccumulatorCuda {
+  using PointCloud = pcl::PointCloud<PointT>;
+  using PointCloudPtr = typename PointCloud::Ptr;
+  using PointCloudConstPtr = typename PointCloud::ConstPtr;
+  using CloudWindow = std::deque<std::pair<void *, size_t>>;
+  using CloudWindowPtr = std::deque<std::pair<void *, size_t>> *;
+
+ public:
+  CloudAccumulatorCuda() : window_size(0), num_clouds(0), num_points(0) {}
+  CloudAccumulatorCuda(size_t input_size)
+      : window_size(input_size), num_clouds(0), num_points(0) {}
+  ~CloudAccumulatorCuda() = default;
+
+  void add(const PointCloudPtr &new_cloud_ptr) {
+    // add to sliding window deque
+    // also maintain num_clouds and num_points
+    cloud_window.emplace_back(
+        cuda_malloc(new_cloud_ptr->size() * sizeof(PointT)),
+        new_cloud_ptr->size());
+    cuda_memcpy_to_dev(cloud_window.back().first, new_cloud_ptr->points.data(),
+                       new_cloud_ptr->size() * sizeof(PointT));
+    num_clouds++;
+    num_points += new_cloud_ptr->size();
+    if (num_clouds > window_size) {
+      num_points -= cloud_window.front().second;
+      cuda_free(cloud_window.front().first);
+      cloud_window.pop_front();
+      num_clouds--;
+    }
+  }
+
+  CloudWindowPtr get_cloud() { return &cloud_window; }
+
+  void set_window_size(size_t input_size) { window_size = input_size; }
+
+ private:
+  size_t window_size;
+
+  CloudWindow cloud_window;
+  size_t num_clouds;
+  size_t num_points;
+
+};  // Class CloudAccumulatorCuda
 
 #endif  // CLOUD_ACCUMULATOR_H

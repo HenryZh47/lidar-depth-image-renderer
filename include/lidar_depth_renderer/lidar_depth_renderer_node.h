@@ -13,6 +13,7 @@
 #include <tf2_ros/transform_listener.h>
 #include "lidar_depth_renderer/cloud_accumulator.h"
 #include "lidar_depth_renderer/lidar_depth_renderer.h"
+#include "lidar_depth_renderer/lidar_depth_renderer_cuda.h"
 
 class LidarDepthRendererNode {
  public:
@@ -36,7 +37,11 @@ class LidarDepthRendererNode {
 
   ros::NodeHandle nh;
   ros::NodeHandle pnh;
+#if USE_CUDA
+  LidarDepthRendererCuda renderer;
+#else
   LidarDepthRenderer renderer;
+#endif
 
   tf2_ros::Buffer tf_buffer;
   tf2_ros::TransformListener tf_listener;
@@ -64,7 +69,11 @@ class LidarDepthRendererNode {
   ros::Subscriber lidar_sub;
   ros::Subscriber camera_info_sub;
 
+#if USE_CUDA
+  CloudAccumulatorCuda<Point> cloud_accumulator;
+#else
   CloudAccumulator cloud_accumulator;
+#endif
 
 };  // class LidarDepthRendererNode
 

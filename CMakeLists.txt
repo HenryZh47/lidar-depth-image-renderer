@@ -34,6 +34,19 @@ if(OPENMP_FOUND)
   )
 endif()
 
+find_package(CUDA REQUIRED)
+
+option(OVERRIDE_DEFAULT_NVCC_FLAGS "Override default nvcc flags" OFF)
+if(NOT OVERRIDE_DEFAULT_NVCC_FLAGS)
+  set(
+      CUDA_NVCC_FLAGS
+      ${CUDA_NVCC_FLAGS};
+      -O3
+          -gencode arch=compute_72,code=sm_72
+          -gencode arch=compute_75,code=sm_75
+  )
+endif()
+
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -150,11 +163,18 @@ set(LDR_LIB_SOURCES
   src/lidar_depth_renderer.cpp
 )
 
+set(LDR_CUDA_LIB_SOURCES
+  src/instrumentation/cycletimer.cpp
+  src/instrumentation/instrument.cpp
+  src/lidar_depth_renderer_cuda.cu
+)
+
 ## Renderer library (serial version)
 add_library(${PROJECT_NAME}_lib ${LDR_LIB_SOURCES})
 target_compile_definitions(${PROJECT_NAME}_lib
   PUBLIC
   OMP=0
+  USE_CUDA=0
 )
 
 ## Renderer library (OpenMP version)
@@ -162,10 +182,21 @@ add_library(${PROJECT_NAME}_omp_lib ${LDR_LIB_SOURCES})
 target_compile_definitions(${PROJECT_NAME}_omp_lib
   PUBLIC
   OMP=1
+  USE_CUDA=0
 )
 target_link_libraries(${PROJECT_NAME}_omp_lib
   ${OpenMP_LIBS}
 )
+
+## Renderer library (CUDA version)
+if(CUDA_FOUND)
+  cuda_add_library(${PROJECT_NAME}_cuda_lib ${LDR_CUDA_LIB_SOURCES})
+  target_compile_definitions(${PROJECT_NAME}_cuda_lib
+  PUBLIC
+  OMP=0
+  USE_CUDA=1
+)
+endif()
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -178,6 +209,10 @@ target_link_libraries(${PROJECT_NAME}_omp_lib
 add_executable(${PROJECT_NAME}_node src/lidar_depth_renderer_node.cpp)
 
 add_executable(${PROJECT_NAME}_omp_node src/lidar_depth_renderer_node.cpp)
+
+if(CUDA_FOUND)
+  cuda_add_executable(${PROJECT_NAME}_cuda_node src/lidar_depth_renderer_node.cpp)
+endif()
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -202,6 +237,13 @@ target_link_libraries(${PROJECT_NAME}_omp_node
   ${OpenCV_LIBRARIES}
   ${PCL_LIBRARIES}
   ${PROJECT_NAME}_omp_lib
+)
+
+target_link_libraries(${PROJECT_NAME}_cuda_node
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${PROJECT_NAME}_cuda_lib
 )
 
 #############

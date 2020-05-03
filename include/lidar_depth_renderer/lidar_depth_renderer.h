@@ -20,12 +20,12 @@
 // #define OMP (1)
 
 class LidarDepthRenderer {
- public:
   using Point = pcl::PointXYZ;
   using PointCloud = pcl::PointCloud<Point>;
   using PointCloudPtr = PointCloud::Ptr;
   using PointCloudConstPtr = PointCloud::ConstPtr;
 
+ public:
   LidarDepthRenderer() = default;
   ~LidarDepthRenderer() = default;
 
@@ -40,7 +40,7 @@ class LidarDepthRenderer {
    *
    * @return int 0 if serial; 1 if OpenMP
    */
-  int query_omp(void);
+  int query_implementation(void);
 
   /**
    * @brief Initializes renderer parameters

@@ -30,7 +30,7 @@ LidarDepthRendererNode::LidarDepthRendererNode(
   out_im_height = 0;
 
   // Query renderer library implementation
-  _implementation = renderer.query_omp();
+  _implementation = renderer.query_implementation();
   switch (_implementation) {
     case 0:
       ROS_INFO("[Library]: Serial");
@@ -38,6 +38,10 @@ LidarDepthRendererNode::LidarDepthRendererNode(
 
     case 1:
       ROS_INFO("[Library]: OpenMP");
+      break;
+
+    case 2:
+      ROS_INFO("[Library]: CUDA");
       break;
 
     default:
