@@ -128,7 +128,7 @@ __global__ void kernel_render(const CudaPoint *cloud_points,
     for (int i = -bloat_factor; i <= bloat_factor; i++) {
       for (int j = -bloat_factor; j <= bloat_factor; j++) {
         // convert to 1d buffer
-        const auto buf_index = (v + i) * width + u;
+        const auto buf_index = (v + i) * width + (u + j);
         // atomic min to buffer
         atomicMin(image_scratch_buf + buf_index, cur_depth);
       }
