@@ -75,11 +75,11 @@ void *cuda_malloc(const size_t size);
 void cuda_memcpy_to_dev(void *dst, const void *src, const size_t size);
 void cuda_free(void *dst);
 
-template <typename PointT>
 class CloudAccumulatorCuda {
-  using PointCloud = pcl::PointCloud<PointT>;
-  using PointCloudPtr = typename PointCloud::Ptr;
-  using PointCloudConstPtr = typename PointCloud::ConstPtr;
+  using Point = pcl::PointXYZ;
+  using PointCloud = pcl::PointCloud<Point>;
+  using PointCloudPtr = PointCloud::Ptr;
+  using PointCloudConstPtr = PointCloud::ConstPtr;
   using CloudWindow = std::deque<std::pair<void *, size_t>>;
   using CloudWindowPtr = std::deque<std::pair<void *, size_t>> *;
 
@@ -93,10 +93,10 @@ class CloudAccumulatorCuda {
     // add to sliding window deque
     // also maintain num_clouds and num_points
     cloud_window.emplace_back(
-        cuda_malloc(new_cloud_ptr->size() * sizeof(PointT)),
+        cuda_malloc(new_cloud_ptr->size() * sizeof(Point)),
         new_cloud_ptr->size());
     cuda_memcpy_to_dev(cloud_window.back().first, new_cloud_ptr->points.data(),
-                       new_cloud_ptr->size() * sizeof(PointT));
+                       new_cloud_ptr->size() * sizeof(Point));
     num_clouds++;
     num_points += new_cloud_ptr->size();
     if (num_clouds > window_size) {

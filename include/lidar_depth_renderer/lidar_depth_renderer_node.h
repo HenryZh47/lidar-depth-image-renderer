@@ -70,7 +70,7 @@ class LidarDepthRendererNode {
   ros::Subscriber camera_info_sub;
 
 #if USE_CUDA
-  CloudAccumulatorCuda<Point> cloud_accumulator;
+  CloudAccumulatorCuda cloud_accumulator;
 #else
   CloudAccumulator cloud_accumulator;
 #endif

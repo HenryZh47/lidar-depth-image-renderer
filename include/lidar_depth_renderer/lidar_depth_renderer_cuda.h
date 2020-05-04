@@ -37,7 +37,7 @@ class LidarDepthRendererCuda {
   // cloud_ptr is a pointer to multiple frames of point clouds in cuda memory
   // void* is the pointer to points in that frame
   // size_t is the size of the point cloud
-  const std::deque<std::pair<void *, size_t>> *cloud_ptr;
+  CloudWindowPtr cloud_ptr;
 
   int image_height;
   int image_width;
