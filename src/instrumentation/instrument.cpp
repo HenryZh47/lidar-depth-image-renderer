@@ -86,3 +86,11 @@ std::chrono::milliseconds get_time_ms(void)
         system_clock::now().time_since_epoch()
     );
 }
+
+std::chrono::microseconds get_time_us(void)
+{
+    using namespace std::chrono;
+    return duration_cast<microseconds>(
+        system_clock::now().time_since_epoch()
+    );
+}

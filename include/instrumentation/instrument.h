@@ -39,6 +39,7 @@ void finish_local_activity(activity_t a);
 void finish_activity(activity_t a);
 void show_activity(FILE *f, bool enable);
 std::chrono::milliseconds get_time_ms(void);
+std::chrono::microseconds get_time_us(void);
 
 #if TRACK
 #define START_ACTIVITY(a) start_activity(a)
