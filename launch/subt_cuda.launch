@@ -1,11 +1,15 @@
 <launch>
+  <arg name="cloud_size" default="30" />
+  <arg name="bloat_factor" default="3" />
+
   <node pkg="lidar_depth_renderer" type="lidar_depth_renderer_cuda_node" name="lidar_depth_renderer" output="screen">
+    <rosparam param="cloud_size" subst_value="True">$(arg cloud_size)</rosparam>
+    <rosparam param="bloat_factor" subst_value="True">$(arg bloat_factor)</rosparam>
     <rosparam>
       lidar_topic: /velodyne_cloud_registered
       camera_info_topic: /rs_front/color/camera_info
       pub_topic: /rs_front/color/aligned_lidar_depth
-      cloud_size: 30
-      bloat_factor: 3
     </rosparam>
   </node>
+
 </launch>
