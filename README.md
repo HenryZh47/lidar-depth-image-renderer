@@ -24,6 +24,12 @@ Programming, Spring 2020.
 1. Create a ROS workspace and clone our package into `src` directory
 1. Build with `catkin build`
 
+### Benchmark
+1. Run `./benchmark.sh -b <your_dataset.bag> -t <play_duration>` under `scripts`
+1. Example: `./benchmark.sh -b ~/Downloads/objdet_2019-08-17-16-37-39_3.bag -t 10`
+1. It should automatically build and run tests for all three implementations
+1. Observe produced CSV logging files under current working directory
+
 ### Launching
 
 We use ROS launch files to configure parameters and run executables.
