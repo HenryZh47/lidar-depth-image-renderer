@@ -157,10 +157,11 @@ void LidarDepthRendererCuda::init(int height, int width) {
   init_image_buf();
 }
 
-void LidarDepthRendererCuda::render(cv::Mat &result,
+int64_t LidarDepthRendererCuda::render(cv::Mat &result,
                                     const sensor_msgs::CameraInfo camera_info,
                                     const tf2::Transform &to_camera_tf,
                                     const int bloat_factor) {
+  int64_t processed_pts = 0;
   // clear scratch buffer
   set_image_buf();
 
@@ -169,6 +170,7 @@ void LidarDepthRendererCuda::render(cv::Mat &result,
   for (const auto &cloud : *cloud_ptr) {
     // get number of thread blocks
     const auto num_points = cloud.second;
+    processed_pts += num_points;
     const dim3 num_blocks((num_points / threads_per_block.x) + 1);
     kernel_render<<<num_blocks, threads_per_block>>>(reinterpret_cast<const CudaPoint*>(cloud.first), 
                                                      cloud.second,
@@ -190,6 +192,8 @@ void LidarDepthRendererCuda::render(cv::Mat &result,
   CHECK_GPU(cudaMemcpy(result.data, image_buf,
                        image_width * image_height * sizeof(uint8_t),
                        cudaMemcpyDeviceToHost));
+
+  return processed_pts;
 }
 
 void LidarDepthRendererCuda::set_cloud(const CloudWindowPtr new_cloud_ptr) {

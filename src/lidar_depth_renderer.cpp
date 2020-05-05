@@ -15,10 +15,11 @@ void LidarDepthRenderer::set_cloud(const PointCloudConstPtr &new_cloud_ptr) {
   cloud_ptr = new_cloud_ptr;
 }
 
-void LidarDepthRenderer::render(cv::Mat &result,
+int64_t LidarDepthRenderer::render(cv::Mat &result,
                                 const sensor_msgs::CameraInfo &camera_info,
                                 const tf2::Transform &to_camera_tf,
                                 const int bloat_factor) {
+  int processed_pts = 0;
   // get camera_info
   // the kitti conversion script put width and height inverted
   const auto width = camera_info.width;
@@ -39,10 +40,11 @@ void LidarDepthRenderer::render(cv::Mat &result,
 
   // render points in camera_cloud
   START_ACTIVITY(ACTIVITY_RENDER);
-  int processed_pts = 0;
+
   size_t total_pts = (*cloud_ptr).size();
 #if OMP
-#pragma omp parallel firstprivate(processed_pts)
+  int64_t processed_pts_local = 0;
+#pragma omp parallel firstprivate(processed_pts_local)
   {
     int tid = omp_get_thread_num();
 
@@ -52,12 +54,13 @@ void LidarDepthRenderer::render(cv::Mat &result,
 #endif
     for (size_t ii = 0; ii < total_pts; ii++) {
       const auto &point = (*cloud_ptr).at(ii);
-      processed_pts++;
 
       cv::Mat *local_result;
 #if OMP
+      processed_pts_local++;
       local_result = &(omp_mats.at(tid));
 #else
+    processed_pts++;
     local_result = &(result);
 #endif
 
@@ -92,6 +95,8 @@ void LidarDepthRenderer::render(cv::Mat &result,
     }
 
 #if OMP
+#pragma omp atomic
+  processed_pts += processed_pts_local;
   }
 #endif
 
@@ -119,6 +124,8 @@ void LidarDepthRenderer::render(cv::Mat &result,
   result.setTo(0, f2_zero_mask);
 #endif
   FINISH_ACTIVITY(ACTIVITY_REDUCE);
+
+  return processed_pts;
 }
 
 int LidarDepthRenderer::query_implementation(void) {

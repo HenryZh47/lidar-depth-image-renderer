@@ -20,8 +20,8 @@ class LidarDepthRendererCuda {
   LidarDepthRendererCuda() = default;
   ~LidarDepthRendererCuda() = default;
 
-  void render(cv::Mat &result, const sensor_msgs::CameraInfo,
-              const tf2::Transform &to_camera_tf, const int bloat_factor);
+  int64_t render(cv::Mat &result, const sensor_msgs::CameraInfo,
+                 const tf2::Transform &to_camera_tf, const int bloat_factor);
   void set_cloud(const CloudWindowPtr new_cloud_ptr);
 
   int query_implementation();

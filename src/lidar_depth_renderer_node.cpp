@@ -23,7 +23,7 @@ static std::fstream log_stream;
 static double clockToMilliseconds(clock_t ticks);
 static void log_init(std::fstream &s, std::string log_file_path);
 static void log_frame(std::fstream &s,
-                      int64_t t, int n_points, int64_t duration);
+                      int64_t t, int64_t n_points, int64_t duration);
 static void log_finish(std::fstream &s);
 
 LidarDepthRendererNode::LidarDepthRendererNode(
@@ -140,13 +140,13 @@ void LidarDepthRendererNode::camera_info_cb(
 
   std::chrono::microseconds begin_time = get_time_us();
 
-  renderer.render(out_im, *info_ptr, map_to_camera_tf, bloat_factor);
+  int64_t processed_pts = renderer.render(out_im, *info_ptr,
+                                          map_to_camera_tf, bloat_factor);
 
   std::chrono::microseconds end_time = get_time_us();
   delta_time = end_time - begin_time;
 
-  // TODO: add #points processed each render iteration
-  log_frame(log_stream, begin_time.count(), 0, delta_time.count());
+  log_frame(log_stream, begin_time.count(), processed_pts, delta_time.count());
 #if (RENDER_PERF_STATS)
   char fps_str[30];
   memset(fps_str, '\n', 30);
@@ -222,7 +222,7 @@ static void log_init(std::fstream &s, std::string log_file_path)
 }
 
 static void log_frame(std::fstream &s,
-                      int64_t t, int n_points, int64_t duration)
+                      int64_t t, int64_t n_points, int64_t duration)
 {
   using namespace std;
   if (logging_enabled)
