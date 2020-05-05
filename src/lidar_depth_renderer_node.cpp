@@ -6,15 +6,25 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <boost/bind.hpp>
 
+#include <iostream>
+#include <fstream>
+#include <signal.h>
+
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 
 #define RENDER_PERF_STATS (1)
 
-/* Framerate variables */
+/* Instrumentation and logging */
 static std::chrono::microseconds delta_time;
+static bool logging_enabled;
+static std::fstream log_stream;
 
 static double clockToMilliseconds(clock_t ticks);
+static void log_init(std::fstream &s, std::string log_file_path);
+static void log_frame(std::fstream &s,
+                      int64_t t, int n_points, int64_t duration);
+static void log_finish(std::fstream &s);
 
 LidarDepthRendererNode::LidarDepthRendererNode(
     ros::NodeHandle *node_handle, ros::NodeHandle *private_node_handle)
@@ -22,6 +32,7 @@ LidarDepthRendererNode::LidarDepthRendererNode(
       pnh(*private_node_handle),
       it(*node_handle),
       tf_listener(tf_buffer) {
+  logging_enabled = false;
   setup_ros();
   initialize_sub();
   initialize_pub();
@@ -55,6 +66,11 @@ void LidarDepthRendererNode::setup_ros() {
   pnh.getParam("lidar_topic", lidar_topic);
   pnh.getParam("camera_info_topic", camera_info_topic);
   pnh.getParam("pub_topic", pub_topic);
+  if (pnh.getParam("log_file_path", log_file_path))
+  {
+    ROS_INFO("path param exists");
+  }
+  log_init(log_stream, log_file_path);
 
   // load cloud size parameters
   pnh.getParam("cloud_size", cloud_size);
@@ -129,6 +145,8 @@ void LidarDepthRendererNode::camera_info_cb(
   std::chrono::microseconds end_time = get_time_us();
   delta_time = end_time - begin_time;
 
+  // TODO: add #points processed each render iteration
+  log_frame(log_stream, begin_time.count(), 0, delta_time.count());
 #if (RENDER_PERF_STATS)
   char fps_str[30];
   memset(fps_str, '\n', 30);
@@ -159,6 +177,13 @@ void LidarDepthRendererNode::initialize_pub() {
   lidar_depth_pub = it.advertise(pub_topic, 1);
 }
 
+void sigint_handler(int sig)
+{
+  ROS_INFO("Cleaning up renderer resources");
+  log_finish(log_stream);
+  ros::shutdown();
+}
+
 int main(int argc, char **argv) {
   ros::init(argc, argv, "lidar_renderer_node");
   ros::NodeHandle node_handle;
@@ -167,6 +192,8 @@ int main(int argc, char **argv) {
   ROS_INFO("Instantiating LidarDepthRendererNode");
   LidarDepthRendererNode renderer_node(&node_handle, &private_node_handle);
 
+  signal(SIGINT, sigint_handler);
+
   ros::spin();
   return 0;
 }
@@ -174,4 +201,40 @@ int main(int argc, char **argv) {
 static double clockToMilliseconds(clock_t ticks) {
   // units/(units/time) => time (seconds) * 1000 = milliseconds
   return (ticks / (double)CLOCKS_PER_SEC) * 1000.0;
+}
+
+static void log_init(std::fstream &s, std::string log_file_path)
+{
+  using namespace std;
+  ROS_INFO("Logging path input: %s", log_file_path.c_str());
+  s.open(log_file_path, fstream::out);
+  if (log_stream.is_open())
+  {
+    logging_enabled = true;
+    s << "Time,NPoints,FrameTime" << endl;
+    ROS_INFO("Logging enabled to file %s", log_file_path.c_str());
+  }
+  else
+  {
+    cerr << "Error: " << strerror(errno) << endl;
+    ROS_INFO("Logging disabled");
+  }
+}
+
+static void log_frame(std::fstream &s,
+                      int64_t t, int n_points, int64_t duration)
+{
+  using namespace std;
+  if (logging_enabled)
+  {
+    s << t << "," << n_points << "," << duration << endl;
+  }
+}
+
+static void log_finish(std::fstream &s)
+{
+  if (logging_enabled)
+  {
+    s.close();
+  }
 }

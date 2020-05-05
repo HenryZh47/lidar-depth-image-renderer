@@ -1,10 +1,12 @@
 <launch>
   <arg name="cloud_size" default="30" />
   <arg name="bloat_factor" default="3" />
+  <arg name="log_file_path" default="" />
 
   <node pkg="lidar_depth_renderer" type="lidar_depth_renderer_omp_node" name="lidar_depth_renderer" output="screen">
     <rosparam param="cloud_size" subst_value="True">$(arg cloud_size)</rosparam>
     <rosparam param="bloat_factor" subst_value="True">$(arg bloat_factor)</rosparam>
+    <rosparam param="log_file_path" subst_value="True">$(arg log_file_path)</rosparam>
     <rosparam>
       lidar_topic: /velodyne_cloud_registered
       camera_info_topic: /rs_front/color/camera_info

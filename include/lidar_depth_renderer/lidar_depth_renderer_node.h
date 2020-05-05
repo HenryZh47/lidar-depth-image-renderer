@@ -50,6 +50,7 @@ class LidarDepthRendererNode {
   std::string lidar_topic;
   std::string camera_info_topic;
   std::string pub_topic;
+  std::string log_file_path;
   int cloud_size;
   int bloat_factor;
 
