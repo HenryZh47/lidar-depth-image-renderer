@@ -1,2 +1,4 @@
 *.log
 *.csv
+*.png
+scripts/results
