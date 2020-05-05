@@ -12,7 +12,7 @@
 #define RENDER_PERF_STATS (1)
 
 /* Framerate variables */
-static std::chrono::milliseconds delta_time;
+static std::chrono::microseconds delta_time;
 
 static double clockToMilliseconds(clock_t ticks);
 
@@ -122,17 +122,17 @@ void LidarDepthRendererNode::camera_info_cb(
   // form depth image and publish
   cv_bridge::CvImage lidar_depth_bridge(info_ptr->header, "8UC1", out_im);
 
-  std::chrono::milliseconds begin_time = get_time_ms();
+  std::chrono::microseconds begin_time = get_time_us();
 
   renderer.render(out_im, *info_ptr, map_to_camera_tf, bloat_factor);
 
-  std::chrono::milliseconds end_time = get_time_ms();
+  std::chrono::microseconds end_time = get_time_us();
   delta_time = end_time - begin_time;
 
 #if (RENDER_PERF_STATS)
   char fps_str[30];
   memset(fps_str, '\n', 30);
-  sprintf(fps_str, "Frame time: %ld ms", delta_time.count());
+  sprintf(fps_str, "Frame time: %ld us", delta_time.count());
   cv::putText(out_im, fps_str, cv::Point(30, 40), cv::FONT_HERSHEY_SIMPLEX, 1.0,
               cv::Scalar(0xFFFF));
 #endif
