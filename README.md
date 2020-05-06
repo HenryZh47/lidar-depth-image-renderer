@@ -7,6 +7,10 @@ both OpenMP and CUDA.
 This is a class project for 15-618 Parallel Computer Architecture and
 Programming, Spring 2020.
 
+Demo Video:
+
+[![Demo Video](http://img.youtube.com/vi/pxZWXLIlUps/0.jpg)](http://www.youtube.com/watch?v=pxZWXLIlUps "Parallel LiDAR Depth Image Rendering Tool Demo")
+
 ## Getting Started
 
 ### Dependencies
