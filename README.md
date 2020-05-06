@@ -50,6 +50,10 @@ GPU parallel version with CUDA.
 
 CPU parallel version using OpenMP multi-threading directives.
 
+## Results
+We achieved on average 120.0x speed up using CUDA implementation.
+![speed-up-comparison](https://github.com/HenryZh47/lidar-depth-image-renderer/blob/master/scripts/results/impl_ftime_comparison.png)
+
 ## Authors
 
 - Henry Zhang (hengruiz@andrew.cmu.edu)
