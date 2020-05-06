@@ -218,7 +218,7 @@ if __name__ == "__main__":
     ax.set_title("Serial, OpenMP with different #cores, CUDA")
     
     plt.xlabel("Implementation")
-    plt.ylabel("Frame Time (us)")
+    plt.ylabel("Frame Time (us) (Lower is better)")
     
     legend_key = {"Serial": "green", "OpenMP": "blue", "CUDA": "red"}
     labels  = list(legend_key.keys())
