@@ -77,7 +77,26 @@ def visualize_omp():
         f.close()
 
         average_frametimes[n_cores] = saturated_average(frametimes[n_cores])
+
+        # Plot frame time w.r.t. points processed
+        if (n_cores % 2):
+            fig = plt.figure(dpi=figure_dpi, figsize=figure_size)
+            ax = fig.add_subplot(1,1,1)
+            x = npts[n_cores][1:]
+            y = frametimes[n_cores][1:]
+            plt.plot(x, y, 'o')
+            plt.xlabel("Points Processed")
+            plt.ylabel("Frame Time (us)")
+
+            z = np.polyfit(x, y, 1)
+            p = np.poly1d(z)
+            plt.plot(x, p(x), "r--")
+            plt.suptitle("Frame Time w.r.t. Points Processed", fontweight='bold')
+            ax.set_title("OpenMP #Core=" + str(n_cores) + ", Linear Fit = " + str(z))
+
+            plt.savefig(os.path.join(results_dir, "omp_ftime_npoints?.png".replace("?", str(n_cores))))
     
+    # Plot average frame time w.r.t. #threads
     fig = plt.figure(dpi=figure_dpi, figsize=figure_size)
     ax = fig.add_subplot(1,1,1)
     x = list(average_frametimes.keys())
@@ -93,6 +112,41 @@ def visualize_omp():
     plt.savefig(os.path.join(results_dir, "omp_core_comparison.png"))
 
     return average_frametimes
+
+def visualize_omp_trend():
+    avg_ftime = -1
+
+    n_cores = multiprocessing.cpu_count()
+    with open(omp_file.replace("?", str(2))) as f:
+        times = []
+        npts = []
+        frametimes = []
+
+        reader = csv.reader(f)
+        _ = next(reader)
+        _ = next(reader) # Skip first outlier
+        for row in reader:
+            times.append(int(row[0]))
+            npts.append(int(row[1]))
+            frametimes.append(int(row[2]))
+        
+        fig = plt.figure(dpi=figure_dpi, figsize=figure_size)
+        ax = fig.add_subplot(1,1,1)
+        plt.plot(npts, frametimes, 'o')
+        plt.xlabel("Points Processed")
+        plt.ylabel("Frame Time (us)")
+
+        z = np.polyfit(npts, frametimes, 1)
+        p = np.poly1d(z)
+        plt.plot(npts, p(npts), "r--")
+        plt.suptitle("Frame Time w.r.t. Points Processed", fontweight='bold')
+        ax.set_title("OpenMP Implementation, Linear Fit = " + str(z))
+
+        # ax.yaxis.set_ticks(np.arange(1, len(frametimes), 5))
+        plt.savefig(os.path.join(results_dir, "omp_ftime_npoints.png"))
+
+        avg_ftime = saturated_average(frametimes)
+    return avg_ftime
 
 # Visualize CUDA
 def visualize_cuda():
@@ -137,6 +191,8 @@ if __name__ == "__main__":
     avg_ftime_omp    = visualize_omp()
     avg_ftime_cuda   = visualize_cuda()
 
+    # visualize_omp_trend()
+
     print("Average Frame Time for [Serial] Version: ", avg_ftime_serial)
     print("Average Frame Time for [OpenMP] Version: ", avg_ftime_omp)
     print("Average Frame Time for [ CUDA ] Version: ", avg_ftime_cuda)
@@ -158,9 +214,12 @@ if __name__ == "__main__":
     colors.append("red")
 
     ax.bar(xs, ys, color=colors)
-    plt.suptitle("Frame Time with All Implementations", fontweight='bold')
+    plt.suptitle("Average Frame Time Performance Comparison", fontweight='bold')
     ax.set_title("Serial, OpenMP with different #cores, CUDA")
-       
+    
+    plt.xlabel("Implementation")
+    plt.ylabel("Frame Time (us)")
+    
     legend_key = {"Serial": "green", "OpenMP": "blue", "CUDA": "red"}
     labels  = list(legend_key.keys())
     handles = [plt.Rectangle((0,0),1,1, color=legend_key[label]) for label in labels]
